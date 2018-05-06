@@ -1,0 +1,73 @@
+group 'io.github.svaponi'
+version '1.0'
+//version '1.0-SNAPSHOT'
+description "Demo project with Gradle (project.name: ${project.name})"
+
+apply plugin: 'java'
+apply plugin: 'maven'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenLocal()
+    maven {
+        url artifactory_baseurl + '/libs-release'
+        credentials {
+            username artifactory_username
+            password artifactory_password
+        }
+    }
+    maven {
+        url artifactory_baseurl + '/libs-snapshot'
+        credentials {
+            username artifactory_username
+            password artifactory_password
+        }
+    }
+    mavenCentral()
+}
+
+dependencies {
+    testCompile 'junit:junit:4.12'
+}
+
+test {
+    dependsOn cleanTest
+    testLogging {
+
+        // Show that tests are run in the command-line output
+        events 'passed'
+
+        // Show STDOUT
+        showStandardStreams true
+
+        // Show exception details
+        exceptionFormat 'full'
+    }
+
+    // gradle does not recognize system properties from command line, example `-Dprop=value`
+    systemProperty 'name', System.getProperty('name')
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: "${artifactory_baseurl}/libs-release-local") {
+                authentication(userName: artifactory_username, password: artifactory_password);
+            }
+            snapshotRepository(url: "${artifactory_baseurl}/libs-snapshot-local") {
+                authentication(userName: artifactory_username, password: artifactory_password);
+            }
+        }
+    }
+}
+
+task hello {
+    doFirst {
+        println 'Hi'
+        println "This is task '${name}' from project '${project.name}'"
+    }
+    doLast {
+        println 'Bye'
+    }
+}
